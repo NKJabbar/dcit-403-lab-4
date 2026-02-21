@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 from typing import Callable, Dict, List, Optional
 
@@ -10,8 +10,9 @@ ACL_PATTERN = re.compile(
     r"\(performative\s+(?P<performative>\w+)\s+"
     r":sender\s+(?P<sender>[\w-]+)\s+"
     r":receiver\s+(?P<receiver>[\w-]+)\s+"
-    r':content\s+"(?P<content>.*)"\)$'
+    r':content\s+"(?P<content>(?:\\.|[^"\\])*)"\)$'
 )
+ALLOWED_PERFORMATIVES = {"REQUEST", "INFORM"}
 
 
 @dataclass
@@ -24,7 +25,7 @@ class ACLMessage:
     content: str
 
     def serialize(self) -> str:
-        escaped_content = self.content.replace('"', r'\"')
+        escaped_content = self.content.replace("\\", "\\\\").replace('"', r'\"')
         return (
             f"(performative {self.performative.upper()} "
             f":sender {self.sender} "
@@ -39,27 +40,42 @@ class ACLMessage:
         if not match:
             raise ValueError(f"Invalid ACL message format: {raw_message}")
 
-        content = match.group("content").replace(r'\"', '"')
+        performative = match.group("performative").upper()
+        if performative not in ALLOWED_PERFORMATIVES:
+            raise ValueError(f"Unsupported performative: {performative}")
+
+        content = bytes(match.group("content"), "utf-8").decode("unicode_escape")
         return ACLMessage(
-            performative=match.group("performative").upper(),
+            performative=performative,
             sender=match.group("sender"),
             receiver=match.group("receiver"),
             content=content,
         )
 
 
+class EventLogger:
+    """Deterministic logger to make lab outputs reproducible."""
+
+    def __init__(self, start_time: Optional[datetime] = None):
+        self.entries: List[str] = []
+        self.current = start_time or datetime(2026, 1, 1, 10, 0, 0)
+
+    def add(self, agent_name: str, event: str) -> None:
+        self.entries.append(f"[{self.current.strftime('%Y-%m-%d %H:%M:%S')}] {agent_name}: {event}")
+        self.current += timedelta(seconds=1)
+
+
 class Agent:
-    def __init__(self, name: str, event_log: List[str]):
+    def __init__(self, name: str, logger: EventLogger):
         self.name = name
-        self.event_log = event_log
+        self.logger = logger
         self.handlers: Dict[str, Callable[[ACLMessage], None]] = {
             "REQUEST": self._handle_request,
             "INFORM": self._handle_inform,
         }
 
     def log(self, event: str) -> None:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.event_log.append(f"[{timestamp}] {self.name}: {event}")
+        self.logger.add(self.name, event)
 
     def send(self, other: "Agent", message: ACLMessage) -> None:
         if message.sender != self.name:
@@ -100,9 +116,9 @@ class Agent:
 
 
 def run_demo() -> List[str]:
-    event_log: List[str] = []
-    planner_agent = Agent("PlannerAgent", event_log)
-    worker_agent = Agent("WorkerAgent", event_log)
+    logger = EventLogger()
+    planner_agent = Agent("PlannerAgent", logger)
+    worker_agent = Agent("WorkerAgent", logger)
 
     planner_agent.send(
         worker_agent,
@@ -124,7 +140,7 @@ def run_demo() -> List[str]:
         ),
     )
 
-    return event_log
+    return logger.entries
 
 
 def save_logs(path: str = "message_logs.txt", logs: Optional[List[str]] = None) -> None:

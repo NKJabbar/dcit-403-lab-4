@@ -1,6 +1,6 @@
-[2026-02-21 22:27:22] PlannerAgent: Sent REQUEST to WorkerAgent | Collect temperature readings in Zone A
-[2026-02-21 22:27:22] WorkerAgent: Received REQUEST from PlannerAgent | Collect temperature readings in Zone A
-[2026-02-21 22:27:22] WorkerAgent: Processing REQUEST action: Collect temperature readings in Zone A
-[2026-02-21 22:27:22] WorkerAgent: Sent INFORM to PlannerAgent | Zone A readings complete: avg=24.3C
-[2026-02-21 22:27:22] PlannerAgent: Received INFORM from WorkerAgent | Zone A readings complete: avg=24.3C
-[2026-02-21 22:27:22] PlannerAgent: Acknowledged INFORM update: Zone A readings complete: avg=24.3C
+[2026-01-01 10:00:00] PlannerAgent: Sent REQUEST to WorkerAgent | Collect temperature readings in Zone A
+[2026-01-01 10:00:01] WorkerAgent: Received REQUEST from PlannerAgent | Collect temperature readings in Zone A
+[2026-01-01 10:00:02] WorkerAgent: Processing REQUEST action: Collect temperature readings in Zone A
+[2026-01-01 10:00:03] WorkerAgent: Sent INFORM to PlannerAgent | Zone A readings complete: avg=24.3C
+[2026-01-01 10:00:04] PlannerAgent: Received INFORM from WorkerAgent | Zone A readings complete: avg=24.3C
+[2026-01-01 10:00:05] PlannerAgent: Acknowledged INFORM update: Zone A readings complete: avg=24.3C

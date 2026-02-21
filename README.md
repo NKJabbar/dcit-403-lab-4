@@ -14,6 +14,7 @@ This lab demonstrates inter-agent communication using a minimal FIPA-ACL style m
 2. REQUEST and INFORM performatives.
 3. Parsing incoming FIPA-ACL style messages and triggering corresponding agent actions.
 4. Handling malformed messages and wrong receiver routing.
+5. Reproducible timestamped logs for consistent grading outputs.
 
 ## Run demo
 
